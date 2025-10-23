@@ -32,30 +32,15 @@ def simulate_ecg(duration=10, fs=250, heart_rate_bpm=70, noise_std=0.2, random_s
     signal += noise_std * np.random.randn(len(t))
     return t, signal, fs
 
-def load_csv_ecg(path, column=None):
-    """
-    Load ECG data from a CSV file. Assumes each row is a time sample or each row is an ECG segment.
-    If CSV is a single-row-per-segment dataset (like some Kaggle sets), return first row as 1D signal.
-    If the CSV contains time and signal columns, auto-detect.
-    """
-    df = pd.read_csv(path, header=None)
-    # Try typical shapes: if df has one row and many columns, return that row
-    if df.shape[0] == 1 and df.shape[1] > 1:
-        return df.iloc[0].values
-    # else if many rows and 1 or 2 columns, return first numeric column
-    if df.shape[1] == 1:
-        return df.iloc[:,0].values
-    # fallback: return first row
-    return df.iloc[0].values
 
-# optional: helper to load PhysioNet with wfdb
-def load_wfdb_record(record_name, pn_dir='mitdb'):
-    try:
-        import wfdb
-    except Exception as e:
-        raise RuntimeError("wfdb required for PhysioNet reading. pip install wfdb") from e
-    record = wfdb.rdrecord(record_name, pn_dir=pn_dir)
-    # record.p_signal is shape (nsamples, n_leads)
-    sig = record.p_signal[:,0]  # first channel
-    fs = record.fs
-    return np.arange(len(sig)) / fs, sig, fs
+def own_data():
+
+    patient_100_file = "/content/drive/MyDrive/Colab Notebooks/100_ekg.csv"
+    ecg100 = pd.read_csv(patient_100_file, index_col=0)
+
+    MLII = ecg100['MLII'].to_numpy()[:3600]
+    V5 = ecg100['V5'].to_numpy()[:10]
+    ecg100['time_ms'] = ecg100.index / 360
+    time = ecg100['time_ms'].to_numpy()[:3600] 
+
+    return MLII, time
